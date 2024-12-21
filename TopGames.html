@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TopGames</title>
+    <link rel="stylesheet" href="../style.css">
+    <script src="https://kit.fontawesome.com/7d33d53aa9.js" crossorigin="anonymous"></script>
+    <script src="../scripts/custom-elms.js"></script>
+</head>
+
+<body style="background-color: rgb(19, 19, 19);">
+    <script src="custom-elms.js"></script>
+    <nav-bar></nav-bar>
+    <br>
+    <center>
+        <h1 style="
+        margin-top: 50px;
+        background-color: rgb(41, 41, 41);
+        width: 350px;
+        height: 75px;
+        line-height: 75px;
+        border-radius: 25px;
+    ">Top Games <i class="fa-solid fa-fire fa-lg" style="color: #74C0FC;"></i></h1>
+
+        <input type="text" id="search-bar" placeholder="Search games..." oninput="search()"
+            style="margin-bottom: 50px;">
+
+
+        <div id="games">
+            <ul class="games-ul" id="games-ul">
+
+
+            </ul>
+        </div>
+        <terms-elm></terms-elm>
+    </center>
+
+    <script src="../scripts/script.js"></script>
+    <script>
+        let games_ul = document.getElementById('games-ul');
+
+        function attachEventListeners() {
+            let games_ul = document.getElementById('games-ul');
+            if (!games_ul) {
+                console.log("Games UL not found");
+                return;
+            }
+
+            games_ul.querySelectorAll('li').forEach(game => {
+                let img = game.querySelector('a img');
+                let name = game.querySelector('p');
+
+                img.addEventListener('click', (event) => {
+                    localStorage.setItem('game-title', name.innerText);
+                });
+            });
+        }
+
+        let observer = new MutationObserver((mutationsList, observer) => {
+            for (let mutation of mutationsList) {
+                if (mutation.type === 'childList') {
+                    attachEventListeners();
+                    return;
+                }
+            }
+        });
+
+        if (games_ul) {
+            observer.observe(games_ul, {childList: true});
+        } else {
+            console.log("Games UL not found");
+        }
+
+        fetch('../games.json')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                let games_ul = document.getElementById('games-ul')
+                data.hot_games.forEach(game => {
+                    let game_name = game.split(' ').join('');
+                    let game_li = document.createElement('li');
+                    let game_a = document.createElement('a');
+                    game_a.href = '../game.html';
+
+                    let game_img = document.createElement('img');
+                    game_img.src = `../games/${game_name}/icon.png`;
+                    game_img.alt = `${game}`;
+
+                    game_a.appendChild(game_img);
+                    game_li.appendChild(game_a);
+                    game_li.appendChild(document.createElement('br'));
+
+                    let p = document.createElement('p');
+                    p.innerText = `${game} `;
+                    data.hot_games.forEach(hot_game => {
+                        if (game === hot_game) {
+                            let icon = document.createElement('i');
+
+                            icon.className = 'fa-solid fa-fire';
+                            icon.style.color = '#74C0FC';
+                            p.appendChild(icon);
+                        }
+                    });
+
+                    game_a.appendChild(p);
+
+                    games_ul.appendChild(game_li);
+                });
+            })
+            .catch(error => {
+                console.error('There was a problem fetching the data:', error);
+            });
+    </script>
+</body>
+
+</html>
